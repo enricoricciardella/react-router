@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "./Card";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 
 // Facciamo oggetto state di PARTENZA
 const oggettoStatePartenza = {
@@ -14,7 +15,7 @@ const oggettoStatePartenza = {
 };
 
 const urlIndex = "http://localhost:3000/Ricette";
-const urlDelete = "http://localhost:3000/Ricette/";
+
 
 // Funzione che fa fetch data back-end tramite axios
 const fetchIniziale = async () => {
@@ -27,21 +28,13 @@ const fetchIniziale = async () => {
   }
 };
 
-const fetchDelete = async (id) => {
-  try {
-    const response = await axios.delete(`${urlDelete}${id}`);
-    return response.data; // Restituisci i dati
-  } catch (error) {
-    console.error("Errore nella fetch:", error);
-    return null; // Gestisci l'errore
-  }
-};
 
 function HomePage() {
   const [oggettoInpState, oggettoSetInpState] = useState(oggettoStatePartenza);
 
   // Faccio arrayState che conterrà tutti i nostri oggetti a onSubmit del form
   const [arrayState, setArrayState] = useState([]);
+  const navigate = useNavigate();
 
   const fetchPost = async () => {
     try {
@@ -105,42 +98,24 @@ function HomePage() {
     });
   };
 
-  const callbackOnSubmit = (event) => {
+  const callbackOnSubmit = async (event) => {
     event.preventDefault();
     if (oggettoInpState.pubblica) {
-      setArrayState((prev_arr) => [...prev_arr, oggettoInpState]);
-      oggettoSetInpState(oggettoStatePartenza);
-      fetchPost();
-    }
-
-  };
-
-  const funzioneCestina = async (idToDelete) => {
-    try {
-      // Fai la chiamata DELETE al backend
-      const deleteResponse = await fetchDelete(idToDelete);
-
-      if (deleteResponse) {
-        // Aggiorna l'arrayState eliminando l'elemento con l'ID specifico
-        setArrayState((prev_arr) =>
-          prev_arr.filter((item) => item.id !== idToDelete)
-        );
-        refetch(); // Facoltativo, per sincronizzare con il backend
-      } else {
-        console.error("Errore nella cancellazione.");
+      try {
+        const result = await fetchPost(); // Salva i dati nel backend
+        // console.log(result);
+        if (result && result.id) {
+          // Reindirizza alla pagina dei dettagli con l'ID restituito dal backend
+          navigate(`/PostList/${result.id}`);
+        } else {
+          console.error("Errore: ID non trovato nel risultato.");
+        }
+      } catch (error) {
+        console.error("Errore nel submit:", error);
       }
-    } catch (error) {
-      console.error("Errore in funzioneCestina:", error);
     }
   };
 
-  // Callback eseguita ad onClick di button che aggiorna da backend
-  const aggiornaDaBackend = (event) => {
-    refetch();
-    setArrayState(data);
-    console.log(data);
-    console.log(arrayState);
-  };
 
   // console.log(arrayState);
   return (
@@ -269,24 +244,8 @@ function HomePage() {
         {/* Card contenente dati da oggettoInputState */}
         <button type="submit">Invia</button>
       </form>
-      <button className="btn-backend" onClick={aggiornaDaBackend}>
-        Aggiorna da Backend
-      </button>
       <hr />
-      {arrayState &&
-        Array.isArray(arrayState) &&
-        arrayState.map((currObject) => (
-          <Card
-            key={currObject.id} // Usa l'ID univoco
-            titolo={currObject.titolo}
-            contenuto={currObject.contenuto}
-            categoria={currObject.categoria}
-            immagine={currObject.immagine}
-            callbackCestina={(event) => {
-              funzioneCestina(currObject.id); // Passa l'ID
-            }}
-          />
-        ))}
+  
     </>
   );
 }

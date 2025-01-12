@@ -1,36 +1,51 @@
-import styles from "./Card.module.css";
+import { useNavigate } from "react-router-dom";
 
 export function Card({
   titolo = "",
   contenuto = "",
+  idCard = -1,
   categoria = "",
   immagine = "",
   callbackCestina,
+  cestina = false,
   arrayTags = [],
+  dettagli = false
 }) {
+  const navigate = useNavigate();
+  //funzione per richiamare dalla lista i dettagli di un singolo libro
+  const callbackDettagli = () => {
+    navigate(`/PostList/${idCard}`)
+  };
 
-  let arraySpanTags =[];
+  let arraySpanTags = [];
   // Devo fare un map di questo array tags craendo un array di span
   if (arrayTags) {
-   arraySpanTags = arrayTags.map((currTag, currIndex) => (
+    arraySpanTags = arrayTags.map((currTag, currIndex) => (
       <span key={currIndex}>{currTag}</span>
     ));
   }
+  //Callback x tornare alla pagina list
+  const tornaIndietroBtn = () => {
+    navigate(`/PostList`)
+}
   return (
-    <div className={styles.card}>
-      <h2 className={styles.title}>{titolo}</h2>
-      <img src={immagine} alt="" className={styles.image} />
-      <p className={styles.content}>{contenuto}</p>
-      <h4 className={styles.category}>{categoria}</h4>
-      <div className={styles.tags}>
+    <div >
+      <h2 >{titolo}</h2>
+      <img src={immagine} alt="" />
+      <p >{contenuto}</p>
+      <h4 >{categoria}</h4>
+      <div >
         {arraySpanTags && arraySpanTags.map((tag) => (
-          <span className={styles.tag}>{tag}</span>
+          <span >{tag}</span>
         ))}
       </div>
       <div>
-        <button onClick={callbackCestina} className={styles.button}>
+        {cestina ? <button onClick={callbackCestina} >
           Cestina
-        </button>
+        </button> : ""}
+        {dettagli ? <button onClick={callbackDettagli}>
+          Dettagli
+        </button> : <button onClick={tornaIndietroBtn}>TORNA INDIETROO</button>}
       </div>
     </div>
   );
